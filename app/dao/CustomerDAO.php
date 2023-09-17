@@ -50,13 +50,27 @@ class CustomerDAO
     {
         $query = "UPDATE customer SET fullname = :fullname, password = :password, phone = :phone WHERE cid = :cid;";
         $stmt = DB::getInstance()->prepare($query);
-        $exec = $stmt->execute([
+ refactor_sql_injection
+        $exec = $stmt->execute(
+            array(
+                'fullname' => $customer->getFullName(),
+                'password' => $customer->getPassword(),
+                'phone' => $customer->getPhone(),
+                'cid' => $customer->getId()
+            )
+        );
+        
+        return $exec;
+
+        $exec = $stmt->execute(
+             array(
             'fullname'  => $customer->getFullName(),
             'password'  => $customer->getPassword(),
             'phone'     => $customer->getPhone(),
             'cid'       => $customer->getId()
-        ]);
+        ));
         return $exec;    
+ master
     }
 
     protected function delete(Customer $customer)

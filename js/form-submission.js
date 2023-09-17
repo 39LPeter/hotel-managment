@@ -1,3 +1,105 @@
+ refactor_sql_injection
+function setCookie (name, value, days) {
+  var expires = '';
+  if (days) {
+    var date = new Date();
+    date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+    expires = '; expires=' + date.toUTCString();
+  }
+  document.cookie = name + '=' + (value || '') + expires + '; path=/';
+}
+
+function getCookie (name) {
+  var nameEQ = name + '';
+  var ca = document.cookie.split(';');
+  for (var i = 0; i < ca.length; i++) {
+    var c = ca[i];
+    while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+    if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
+  }
+  return null;
+}
+
+function eraseCookie (name) {
+  document.cookie = name + '=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+}
+
+const regexReservedWords = /\b(ADD|ALTER|AND|AS|BETWEEN|BY|CASE|CREATE|DELETE|DESC|DISTINCT|DROP|EXISTS|FROM|GROUP|HAVING|IN|INSERT|INTO|IS|JOIN|LIKE|LIMIT|NOT|NULL|OR|ORDER|SELECT|SET|TABLE|UPDATE|VALUES|WHERE)\b/gmi;
+// Alternative syntax using RegExp constructor
+// const regex = new RegExp('\\b(ADD|ALTER|AND|AS|BETWEEN|BY|CASE|CREATE|DELETE|DESC|DISTINCT|DROP|EXISTS|FROM|GROUP|HAVING|IN|INSERT|INTO|IS|JOIN|LIKE|LIMIT|NOT|NULL|OR|ORDER|SELECT|SET|TABLE|UPDATE|VALUES|WHERE)\\b', 'gmi')
+
+const findMatchReservedWords = (str) => {
+  let m;
+  let foundMatch = false;
+
+  while ((m = regexReservedWords.exec(str)) !== null) {
+    // This is necessary to avoid infinite loops with zero-width matches
+    if (m.index === regexReservedWords.lastIndex) {
+      regexReservedWords.lastIndex++;
+    }
+
+    // The result can be accessed through the `m`-variable.
+    for (let i = 0; i < m.length; i++) {
+      // const match = m[i];
+      // console.log(`Found match, group ${i}: ${match}`);
+      foundMatch = true;
+      break;
+    }
+  }
+  return foundMatch;
+};
+
+=======
+function setCookie (name, value, days) {
+  var expires = '';
+  if (days) {
+    var date = new Date();
+    date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+    expires = '; expires=' + date.toUTCString();
+  }
+  document.cookie = name + '=' + (value || '') + expires + '; path=/';
+}
+
+function getCookie (name) {
+  var nameEQ = name + '';
+  var ca = document.cookie.split(';');
+  for (var i = 0; i < ca.length; i++) {
+    var c = ca[i];
+    while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+    if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
+  }
+  return null;
+}
+
+function eraseCookie (name) {
+  document.cookie = name + '=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+}
+
+const regexReservedWords = /\b(ADD|ALTER|AND|AS|BETWEEN|BY|CASE|CREATE|DELETE|DESC|DISTINCT|DROP|EXISTS|FROM|GROUP|HAVING|IN|INSERT|INTO|IS|JOIN|LIKE|LIMIT|NOT|NULL|OR|ORDER|SELECT|SET|TABLE|UPDATE|VALUES|WHERE)\b/gmi;
+// Alternative syntax using RegExp constructor
+// const regex = new RegExp('\\b(ADD|ALTER|AND|AS|BETWEEN|BY|CASE|CREATE|DELETE|DESC|DISTINCT|DROP|EXISTS|FROM|GROUP|HAVING|IN|INSERT|INTO|IS|JOIN|LIKE|LIMIT|NOT|NULL|OR|ORDER|SELECT|SET|TABLE|UPDATE|VALUES|WHERE)\\b', 'gmi')
+
+const findMatchReservedWords = (str) => {
+  let m;
+  let foundMatch = false;
+
+  while ((m = regexReservedWords.exec(str)) !== null) {
+    // This is necessary to avoid infinite loops with zero-width matches
+    if (m.index === regexReservedWords.lastIndex) {
+      regexReservedWords.lastIndex++;
+    }
+
+    // The result can be accessed through the `m`-variable.
+    for (let i = 0; i < m.length; i++) {
+      // const match = m[i];
+      // console.log(`Found match, group ${i}: ${match}`);
+      foundMatch = true;
+      break;
+    }
+  }
+  return foundMatch;
+
+   master
 const formIds = {
   register: '#registration-form',
   login: '#login-form',
@@ -51,9 +153,15 @@ const formData = {
 
 const registrationSubmit = function () {
   let registrationData = formData.registration();
+ refactor_sql_injection
+  registrationData.submitBtn = 'updatebtn';
+  let dataStr = Object.values(registrationData).join(' ');
+  if ((dataStr && dataStr !== '') && !findMatchReservedWords(dataStr)) {
+=======
   registrationData.submitBtn = 'updatebtn'; // to exclude from reserved words
   let dataStr = Object.values(registrationData).join(' ');
-  if (!new UtilityFunctions().findMatchReservedWords(dataStr)) {
+  if ((dataStr && dataStr !== '') && !findMatchReservedWords(dataStr)){
+ master
     $.ajax({
       url: 'app/process_registration.php',
       type: 'post',
@@ -78,10 +186,15 @@ const loginSubmit = function () {
   }).done(function (response) {
     let resp = JSON.parse(response);
     if (resp[0] === 1) {
+ refactor_sql_injection
       new UtilityFunctions().setCookie('is_admin', resp[1]);
+=======
+      new UtilityFunctions().setCookie('is_admin', resp[1]);
+ master
       let locHref = location.href;
       let homePageLink = locHref.substring(0, locHref.lastIndexOf('/')) + '/index.php';
       window.location.replace(homePageLink);
+      setCookie('is_admin', resp[1]);
     } else {
       $(formIds.login).find('.alert').remove();
       $(formIds.login).prepend(response);
@@ -95,7 +208,11 @@ const clickSignOut = function () {
     type: 'get'
   }).done(function (response) {
     if (response === '1') {
+refactor_sql_injection
+     new UtilityFunctions().eraseCookie('is_admin');
+=======
       new UtilityFunctions().eraseCookie('is_admin');
+ master
       let locHref = location.href;
       let homePageLink = locHref.substring(0, locHref.lastIndexOf('/')) + '/index.php';
       window.location.replace(homePageLink);
@@ -107,32 +224,45 @@ const clickSignOut = function () {
 
 const reservationSubmit = function () {
   let reservation = formData.reservation();
-  // TODO : use findMatchReservedWords here
-  $.ajax({
-    url: 'app/process_reservation.php',
-    type: 'post',
-    data: reservation
-  }).done(function (response) {
-    $(formIds.reservation).find('.alert').remove();
-    try {
-      let out = JSON.parse(response);
-      if (out.success === 'true') {
-        $(formIds.reservation).prepend(out.response);
-        $(formIds.reservation).find('input[type=submit]').prop('disabled', true);
-      }
-    } catch (string) {
-      $(formIds.reservation).prepend(response);
-    }
-  });
+  reservation.submitBtn = 'updatebtn'; // to exclude from reserved words
+  let dataStr = Object.values(reservation).join(' ');
+  if ((dataStr && dataStr !== '')) {
+    console.log(findMatchReservedWords(reservation));
+  }
+
+  // if ((dataStr && dataStr !== '') && !findMatchReservedWords(reservation)) {
+  //   $.ajax({
+  //     url: 'app/process_reservation.php',
+  //     type: 'post',
+  //     data: reservation
+  //   }).done(function (response) {
+  //     $(formIds.reservation).find('.alert').remove();
+  //     try {
+  //       let out = JSON.parse(response);
+  //       if (out.success === 'true') {
+  //         $(formIds.reservation).prepend(out.response);
+  //         $(formIds.reservation).find('input[type=submit]').prop('disabled', true);
+  //       }
+  //     } catch (string) {
+  //       $(formIds.reservation).prepend(response);
+  //     }
+  //   });
+  // } else {
+  //   console.error('found reserved words');
+  //   alert('Something went wrong!');
+  // }
 };
 
 const updateProfileSubmit = function () {
   let updateData = formData.updateProfile();
-  console.log(updateData);
   updateData.submitBtn = 'updatebtn'; // to exclude from reserved words
-
   let dataStr = Object.values(updateData).join(' ');
+ refactor_sql_injection
+  // if ((dataStr && dataStr !== '') && !new UtilityFunctions().findMatchReservedWords(dataStr)) {
   if (!new UtilityFunctions().findMatchReservedWords(dataStr)) {
+=======
+  if (!new UtilityFunctions().findMatchReservedWords(dataStr)) {
+ master
     $.ajax({
       url: 'app/process_update_profile.php',
       type: 'post',
@@ -142,10 +272,17 @@ const updateProfileSubmit = function () {
       $(formIds.updateProfile).prepend(response);
       $(formIds.updateProfile).find('input').prop('disabled', true);
     });
+ refactor_sql_injection
+   } else {
+     console.error('found reserved words');
+     alert('Something went wrong!');
+   }
+=======
   } else {
     console.error('found reserved words');
     alert('Something went wrong!');
   }
+ master
 };
 
 $(document).ready(function () {
