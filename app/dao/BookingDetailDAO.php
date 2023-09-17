@@ -53,17 +53,17 @@ class BookingDetailDAO
     // $i is a booking id from booking table
     protected function updateConfirmed($i)
     {
-        $sql = 'UPDATE `booking` SET `status` = ? WHERE `booking`.`id` = ' . $i . ';';
+        $sql = 'UPDATE `booking` SET `status` = :status WHERE id = :id;';
         $stmt = DB::getInstance()->prepare($sql);
-        $exec = $stmt->execute(["CONFIRMED"]);
+        $exec = $stmt->execute(["id" => $i, "status" => "CONFIRMED"]);
         return $exec;
     }
 
     protected function updateCancelled($i)
     {
-        $sql = 'UPDATE `booking` SET `status` = ? WHERE `booking`.`id` = ' . $i . ';';
+        $sql = 'UPDATE `booking` SET `status` = :status WHERE id = :id;';
         $stmt = DB::getInstance()->prepare($sql);
-        $exec = $stmt->execute(["CANCELLED"]);
+        $exec = $stmt->execute(["id" => $i, "status" => "CANCELLED"]);
         return $exec;
     }
 
@@ -71,15 +71,15 @@ class BookingDetailDAO
     // example usage: updateBooking(1, true, false)
     protected function updateBooking($id, $isForConfirmation, $isForCancellation)
     {
-        $sql = 'UPDATE `booking` SET `status` = ? WHERE `booking`.`id` = ' . $id . ';';
+        $sql = 'UPDATE `booking` SET `status` = :status WHERE id = :id;';
         $stmt = DB::getInstance()->prepare($sql);
         $updateStatus = [\models\StatusEnum::PENDING_STR, \models\StatusEnum::CONFIRMED_STR, \models\StatusEnum::CANCELLED_STR];
         if ($isForConfirmation) {
-            $exec = $stmt->execute($updateStatus[1]);
+            $exec = $stmt->execute(["id" => $id, "status" => $updateStatus[1]]);
         } else if ($isForCancellation) {
-            $exec = $stmt->execute($updateStatus[2]);
+            $exec = $stmt->execute(["id" => $id, "status" => $updateStatus[2]]);
         } else {
-            $exec = $stmt->execute($updateStatus[0]);
+            $exec = $stmt->execute(["id" => $id, "status" => $updateStatus[0]]);
         }
         return $exec;
     }

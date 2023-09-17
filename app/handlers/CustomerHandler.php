@@ -94,6 +94,7 @@ class CustomerHandler extends CustomerDAO
 
     public function updateCustomer(Customer $customer)
     {
+refactor_sql_injection
         $c_data = [
             $customer->getId(),
             $customer->getFullName(), 
@@ -106,11 +107,22 @@ class CustomerHandler extends CustomerDAO
         if ($this->isCustomerExists($customer->getEmail()) == 1 && !Util::has_reserved_words($c_data_string)) {            
             if ($this->update($customer)) {
                 $this->setExecutionFeedback("You have successfully updated your profile!");
-            } else {
-                $this->setExecutionFeedback(Util::DB_SERVER_ERROR);
-            }
+
+        $c_data = [$customer->getId(), $customer->getFullName(), $customer->getPhone(), $customer->getEmail(), $customer->getPassword()];
+        $c_data_string = implode(", ", $c_data);
+        if(Util::has_reserved_words($c_data_string)) {
+            $this->setExecutionFeedback("Something is not right.");
         } else {
-            $this->setExecutionFeedback("This email is not registered.");
+            if ($this->isCustomerExists($customer->getEmail()) == 1) {
+                if ($this->update($customer)) {
+                    $this->setExecutionFeedback("You have successfully updated your profile!");
+                } else {
+                    $this->setExecutionFeedback(Util::DB_SERVER_ERROR);
+                }
+ master
+            } else {
+                $this->setExecutionFeedback("This email is not registered.");
+            }
         }
     }
 

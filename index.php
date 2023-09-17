@@ -7,6 +7,14 @@ session_start();
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="msapplication-TileColor" content="#da532c">
+    <meta name="theme-color" content="#ffffff">
+
+    <link rel="apple-touch-icon" sizes="180x180" href="image/favicon/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="image/favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="image/favicon/favicon-16x16.png">
+    <link rel="manifest" href="image/favicon/site.webmanifest">
+    <link rel="mask-icon" href="image/favicon/safari-pinned-tab.svg" color="#5bbad5">
 
     <link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.10.16/css/jquery.dataTables.min.css">
@@ -29,7 +37,7 @@ session_start();
 
     $username = $cHandler = $bdHandler = $cBookings = null;
     $isSessionExists = false;
-    $isAdmin = 0;
+    $isAdmin = [];
     if (isset($_SESSION["username"])) {
         $username = $_SESSION["username"];
 
@@ -41,6 +49,7 @@ session_start();
         $bdHandler = new BookingDetailHandler();
         $cBookings = $bdHandler->getCustomerBookings($cHandler);
         $isSessionExists = true;
+        $isAdmin = $_SESSION["authenticated"];
     }
     if (isset($_SESSION["isAdmin"]) && isset($_SESSION["username"])) {
         $isSessionExists = true;
@@ -48,9 +57,18 @@ session_start();
         $isAdmin = $_SESSION["isAdmin"];
     }
 
+ refactor_sql_injection
     if (isset($_COOKIE['is_admin'])) {
         echo $_COOKIE['is_admin'];
+       var_dump($isAdmin);
     }
+=======
+    // if (isset($_COOKIE['is_admin'])) {
+    //     echo $_COOKIE['is_admin'];
+    //     var_dump($isAdmin);
+    // }
+
+ master
     ?>
     <title>Home</title>
     <?php //echo '<title>Home isAdmin=' . $isAdmin . ' $isSessionExists=' . $isSessionExists . '</title>'?>
@@ -69,8 +87,13 @@ session_start();
                     <?php if ($isSessionExists) { ?>
                     <h4 class="text-white"><?php echo $username; ?></h4>
                     <ul class="list-unstyled">
+refactor_sql_injection
                         <?php if ($isAdmin == 1 && isset($_COOKIE['is_admin']) && $_COOKIE['is_admin'] == 'true') { ?>
                             <li><a href="admin.php" class="text-white">Manage customer reservation(s)<i class="far fa-address-book ml-2"></i></a></li>
+=======
+                        <?php if ($isAdmin[1] == 1 && isset($_COOKIE['is_admin']) && $_COOKIE['is_admin'] == "true") { ?>
+                        <li><a href="admin.php" class="text-white">Manage customer reservation(s)<i class="far fa-address-book ml-2"></i></a></li>
+ master
                         <?php } else { ?>
                             <li><a href="#" class="text-white my-reservations">View my bookings<i class="far fa-address-book ml-2"></i></a></li>
                             <li><a href="#" class="text-white" data-toggle="modal" data-target="#myProfileModal">Update profile<i class="fas fa-user ml-2"></i></a></li>
@@ -241,6 +264,7 @@ session_start();
         </div>
     </div>
 
+    <?php if(isset($_COOKIE['is_admin']) && $_COOKIE['is_admin'] == "false") : ?>
     <div class="modal fade book-now-modal-lg" tabindex="-1" role="dialog" aria-labelledby="bookNowModalLarge" aria-hidden="true">
         <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
@@ -252,7 +276,7 @@ session_start();
                 </div>
 
                 <div class="modal-body" id="reservationModalBody">
-                    <?php if ($isSessionExists == 1 && $isAdmin == 0) { ?>
+                    <?php if ($isSessionExists == 1 && $isAdmin[1] == "false") { ?>
                         <form role="form" autocomplete="off" method="post" id="multiStepRsvnForm">
                             <div class="rsvnTab">
                                 <?php if ($isSessionExists) { ?>
@@ -401,6 +425,7 @@ session_start();
             </div>
         </div>
     </div>
+    <?php endif; ?>
 
     <div class="modal sign-in-to-book-modal" tabindex="-1" role="dialog" aria-labelledby="signInToBookModal" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" role="document">
@@ -418,7 +443,11 @@ session_start();
         </div>
     </div>
 
-    <?php if (isset($_COOKIE['is_admin']) && $_COOKIE['is_admin'] == 'false') { ?>
+ refactor_sql_injection
+    <?php if(($isSessionExists == 1 && $isAdmin[1] == "false") && isset($_COOKIE['is_admin']) && $_COOKIE['is_admin'] == "false") { ?>
+=======
+    <?php if(($isSessionExists == 1 && $isAdmin[1] == "false") && isset($_COOKIE['is_admin']) && $_COOKIE['is_admin'] == "false") : ?>
+ master
     <div class="modal" id="myProfileModal" tabindex="-1" role="dialog">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
@@ -468,7 +497,11 @@ session_start();
             </div>
         </div>
     </div>
-    <?php } ?>
+ refactor_sql_injection
+    <?php endif; ?>
+=======
+    <?php endif; ?>
+ master
 
 </main>
 
